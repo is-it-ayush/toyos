@@ -5,30 +5,30 @@
 // use that.
 #![no_main]
 
+mod io;
+
 /// Also we prolly need to handle panics ourselves. Cause what if kernal go BRRR???
-use core::panic::PanicInfo;
+use core::{panic::PanicInfo, fmt::Write};
+
+use crate::io::vga_buffer;
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+fn panic(info: &PanicInfo) -> ! {
+    println!("{}", info);
     loop {}
 }
 
-static HELLO: &[u8] = b"Hello World! :3";
 
 /// This is where it gets intresting. The _start is the default entry point
-/// for most systems. We gotta tell the system, "Hey! Our program begins here!"
-/// "no mangle" stuff tells the rust compiler to not do generate a cryptic name
+/// that the bootloader library calls. We gotta tell the bootloader, "Hey! Our program begins
+/// here!". "no mangle" stuff tells the rust compiler to not do generate a cryptic name
 /// for our function. Wihtout no mangle, it would generate something like
 /// fjspa349029aas_start_asjodbob & system won't be able to find our _start. geddit?
+///
+/// If you were implementing your own bootloader, you could change this behaviour & call
+/// your starting function whatever you like. Just know, that bootloader doesn't really know
+/// that the function exists in your kernal. It just calls it cause you said so.
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let vga_buffer = 0xb8000 as *mut u8;
-
-    for (i, &byte) in HELLO.iter().enumerate() {
-        unsafe {
-            *vga_buffer.offset(i as isize * 2) = byte;
-            *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
-        }
-    }
-
+    println!("hello ayush! :3");
     loop {}
 }
