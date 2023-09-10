@@ -29,6 +29,6 @@ fn panic(info: &PanicInfo) -> ! {
 /// that the function exists in your kernal. It just calls it cause you said so.
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    println!("hello ayush! :3");
+    println!("hello ayush! brrr grrr RAWWWWWWWWWWWWWWWWWWR :3");
     loop {}
 }
