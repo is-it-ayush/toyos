@@ -1,15 +1,19 @@
-// this how we tell rust to not use the std lib.
 #![no_std]
-// this how we tell rust to not use main as the entry point. cause someone needs to
-// call main right? & bare metal stuff aint got nobody calling main(). so we ain't
-// use that.
 #![no_main]
+#![feature(custom_test_frameworks)]
+#![test_runner(tests::test_runner)]
+#![reexport_test_harness_main = "test_main"]
 
 mod io;
+mod tests;
 
-/// Also we prolly need to handle panics ourselves. Cause what if kernal go BRRR???
-use core::{panic::PanicInfo, fmt::Write};
-
+/// On bare metal, you have to handle the panics youself.
+/// Imagine if kernel panickned, Who would unwind the stack? There
+/// is nobody running the kernel. Kernel is the sole owner of the
+/// machine that takes the control from the bootloader.
+/// Therefore, it doesn't make sense for kernal to panic &
+/// you have to handle the panic yourself for kernal.
+use core::panic::PanicInfo;
 use crate::io::vga_buffer;
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
@@ -29,6 +33,10 @@ fn panic(info: &PanicInfo) -> ! {
 /// that the function exists in your kernal. It just calls it cause you said so.
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    println!("hello ayush! brrr grrr RAWWWWWWWWWWWWWWWWWWR :3");
+
+    #[cfg(test)]
+    test_main();
+
+    print!("hello ayush! brrr grrr RAWWWWWWWWWWWWWWWWWWR :3");
     loop {}
 }
