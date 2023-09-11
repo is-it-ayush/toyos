@@ -7,14 +7,17 @@
 mod io;
 mod tests;
 
+use core::panic::PanicInfo;
+use crate::io::vga_buffer;
+use x86_64::instructions::port::Port;
+
 /// On bare metal, you have to handle the panics youself.
 /// Imagine if kernel panickned, Who would unwind the stack? There
 /// is nobody running the kernel. Kernel is the sole owner of the
 /// machine that takes the control from the bootloader.
 /// Therefore, it doesn't make sense for kernal to panic &
 /// you have to handle the panic yourself for kernal.
-use core::panic::PanicInfo;
-use crate::io::vga_buffer;
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
@@ -39,4 +42,19 @@ pub extern "C" fn _start() -> ! {
 
     print!("hello ayush! brrr grrr RAWWWWWWWWWWWWWWWWWWR :3");
     loop {}
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum ExitCode {
+    Success = 0x10,
+    Failed = 0x11
+}
+
+pub fn exit(exit_code: ExitCode) {
+    unsafe {
+        // This is only for qemu. Might implemenent a proper exit system later.
+        let mut port = Port::new(0xf4);
+        port.write(exit_code as u32);
+    }
 }
