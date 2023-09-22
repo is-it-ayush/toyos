@@ -1,15 +1,12 @@
 #![no_std]
 #![no_main]
 #![feature(custom_test_frameworks)]
-#![test_runner(tests::test_runner)]
+#![test_runner(toyos::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
 mod io;
-mod tests;
 
 use core::panic::PanicInfo;
-use crate::io::vga_buffer;
-use x86_64::instructions::port::Port;
 
 /// On bare metal, you have to handle the panics youself.
 /// Imagine if kernel panickned, Who would unwind the stack? There
@@ -24,6 +21,11 @@ fn panic(info: &PanicInfo) -> ! {
     loop {}
 }
 
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    toyos::test_panic_handler(info)
+}
 
 /// This is where it gets intresting. The _start is the default entry point
 /// that the bootloader library calls. We gotta tell the bootloader, "Hey! Our program begins
@@ -42,19 +44,4 @@ pub extern "C" fn _start() -> ! {
 
     print!("hello ayush! brrr grrr RAWWWWWWWWWWWWWWWWWWR :3");
     loop {}
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u32)]
-pub enum ExitCode {
-    Success = 0x10,
-    Failed = 0x11
-}
-
-pub fn exit(exit_code: ExitCode) {
-    unsafe {
-        // This is only for qemu. Might implemenent a proper exit system later.
-        let mut port = Port::new(0xf4);
-        port.write(exit_code as u32);
-    }
 }
