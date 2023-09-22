@@ -22,7 +22,7 @@ impl<T: Fn()> Testable for T {
 }
 
 pub fn test_runner(tests: &[&dyn Testable]) {
-    serial_println!("[Tests] Executing tests...");
+    serial_println!("[Tests] Executing {} tests...", tests.len());
     for test in tests {
         test.run();
     }
